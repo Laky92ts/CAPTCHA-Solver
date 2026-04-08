@@ -22,15 +22,15 @@ session = None
 @app.on_event("startup")
 async def startup():
     global session
-    # Specifica i providers esplicitamente (solo CPU)
     session = ort.InferenceSession("captcha_model.onnx", providers=['CPUExecutionProvider'])
     print("[OK] Modello ONNX caricato")
 
 def preprocess(image_bytes):
     img = Image.open(io.BytesIO(image_bytes)).convert('L')
-    img = img.resize((150, 49))
-    img_array = np.array(img, dtype=np.float32) / 255.0
-    img_tensor = img_array[np.newaxis, np.newaxis, ...]  # (1,1,49,150)
+    img = img.resize((150, 49))   # (width, height) -> PIL
+    img_array = np.array(img, dtype=np.float32) / 255.0   # shape (49, 150)
+    # Aggiungi batch e canale: (1, 49, 150, 1)
+    img_tensor = img_array[np.newaxis, ..., np.newaxis]
     return img_tensor
 
 @app.post("/solve")
